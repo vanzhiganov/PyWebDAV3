@@ -22,31 +22,44 @@ setup(name='PyWebDAV3',
     version=pywebdav.__version__,
     long_description=README,
     classifiers=[
-      'Development Status :: 5 - Production/Stable',
-      'Environment :: Console',
-      'Environment :: Web Environment',
-      'Intended Audience :: Developers',
-      'Intended Audience :: System Administrators',
-      'License :: OSI Approved :: GNU General Public License (GPL)',
-      'Operating System :: MacOS :: MacOS X',
-      'Operating System :: POSIX',
-      'Programming Language :: Python',
-      'Topic :: Software Development :: Libraries',
-      ],
-    keywords=['webdav',
-              'server',
-              'dav',
-              'standalone',
-              'library',
-              'gpl',
-              'http',
-              'rfc2518',
-              'rfc 2518'
-              ],
+        'Development Status :: 5 - Production/Stable',
+        'Environment :: Console',
+        'Environment :: Web Environment',
+        'Intended Audience :: Developers',
+        'Intended Audience :: System Administrators',
+        'License :: OSI Approved :: GNU General Public License (GPL)',
+        'Operating System :: MacOS :: MacOS X',
+        'Operating System :: POSIX',
+        'Programming Language :: Python',
+        'Topic :: Software Development :: Libraries',
+    ],
+    keywords=[
+        'webdav',
+        'server',
+        'dav',
+        'standalone',
+        'library',
+        'gpl',
+        'http',
+        'rfc2518',
+        'rfc 2518'
+    ],
     packages=find_packages(),
     entry_points={
-      'console_scripts': ['davserver = pywebdav.server.server:run']
-      },
-    install_requires = ['six'],
-    setup_requires=['git-versioner'],
-    )
+        'console_scripts': [
+            'davserver = pywebdav.server.server:run'
+        ]
+    },
+    install_requires = [
+        'six',
+    ],
+    extras_require={
+        "mysql": [
+            'cryptography',
+            'PyMySQ'
+        ]
+    },
+    setup_requires=[
+        'git-versioner'
+    ],
+)

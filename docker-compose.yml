@@ -1,0 +1,19 @@
+version: "3"
+services:
+  db:
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: mysql
+      MYSQL_DATABASE: webdav
+      MYSQL_USER: webdav
+      MYSQL_PASSWORD: webdav
+    volumes:
+      - mysql:/var/lib/mysql
+    ports:
+      - 3306:3306
+  adminer:
+    image: adminer
+    ports:
+      - 8080:8080
+volumes:
+  mysql: {}

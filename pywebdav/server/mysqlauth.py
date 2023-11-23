@@ -19,6 +19,8 @@ from __future__ import absolute_import
 from __future__ import print_function
 from .fileauth import DAVAuthHandler
 import sys
+from pywebdav.lib.dbconn import Mconn
+
 
 class MySQLAuthHandler(DAVAuthHandler):
     """
@@ -29,15 +31,23 @@ class MySQLAuthHandler(DAVAuthHandler):
         """ authenticate user """
 
         # Commands that need write access
-        nowrite=['OPTIONS','PROPFIND','GET']
+        nowrite = [
+            'OPTIONS','PROPFIND','GET'
+        ]
 
-        Mysql=self._config.MySQL
-        DB=Mconn(Mysql.user,Mysql.passwd,Mysql.host,Mysql.port,Mysql.dbtable)
+        Mysql = self._config.MySQL
+        DB = Mconn(Mysql.user, Mysql.passwd, Mysql.host, Mysql.port, Mysql.dbtable)
         if self.verbose:
-            print(user,command, file=sys.stderr)
+            print(user, command, file=sys.stderr)
 
-        qry="select * from %s.Users where User='%s' and Pass='%s'"%(Mysql.dbtable,user,pw)
-        Auth=DB.execute(qry)
+        qry = "SELECT * FROM %s.Users WHERE User='%s' AND Pass='%s' LIMIT 1" % (Mysql.dbtable, user, pw)
+
+        Auth = None
+        try:
+            Auth = DB.execute(qry)
+        except Exception as ex:
+            self._log('Authentication failed for user %s: %s' % (user, ex))
+            return 0
 
         if len(Auth) == 1:
             can_write=Auth[0][3]
@@ -50,7 +60,3 @@ class MySQLAuthHandler(DAVAuthHandler):
         else:
             self._log('Authentication failed for user %s' % user)
             return 0
-
-        self._log('Authentication failed for user %s' % user)
-        return 0
-

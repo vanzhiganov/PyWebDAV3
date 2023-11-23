@@ -150,10 +150,9 @@ class FilesystemHandler(dav_interface):
 
         return template.format(items=htmlitems, path=path)
 
-    def get_data(self,uri, range = None):
+    def get_data(self, uri, range = None):
         """ return the content of an object """
-
-        path=self.uri2local(uri)
+        path = self.uri2local(uri)
         if os.path.exists(path):
             if os.path.isfile(path):
                 file_size = os.path.getsize(path)
