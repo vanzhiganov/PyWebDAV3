@@ -56,7 +56,7 @@ setup(name='PyWebDAV3',
     extras_require={
         "mysql": [
             'cryptography',
-            'PyMySQ'
+            'PyMySQL'
         ]
     },
     setup_requires=[
