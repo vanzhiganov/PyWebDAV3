@@ -56,12 +56,11 @@ class DAVRequestHandler(AuthServer.AuthRequestHandler, LockManager):
     server_version = "DAV/" + __version__
     encode_threshold = 1400  # common MTU
 
-    def send_body(self, DATA, code=None, msg=None, desc=None,
-                  ctype='application/octet-stream', headers={}):
+    def send_body(self, content, status_code=None, msg=None, desc=None, ctype='application/octet-stream', headers={}):
         """ send a body in one part """
         log.debug("Use send_body method")
 
-        self.send_response(code, message=msg)
+        self.send_response(status_code, message=msg)
         self.send_header("Connection", "close")
         self.send_header("Accept-Ranges", "bytes")
         self.send_header('Date', rfc1123_date())
@@ -71,68 +70,63 @@ class DAVRequestHandler(AuthServer.AuthRequestHandler, LockManager):
         for a, v in headers.items():
             self.send_header(a, v)
 
-        if DATA:
+        if content:
             try:
-                if 'gzip' in self.headers.get('Accept-Encoding', '').split(',') \
-                        and len(DATA) > self.encode_threshold:
+                if 'gzip' in self.headers.get('Accept-Encoding', '').split(',') and len(content) > self.encode_threshold:
                     buffer = io.BytesIO()
                     output = gzip.GzipFile(mode='wb', fileobj=buffer)
-                    if isinstance(DATA, str) or isinstance(DATA, six.text_type):
-                        output.write(DATA)
+                    if isinstance(content, str) or isinstance(content, six.text_type):
+                        output.write(content)
                     else:
-                        for buf in DATA:
+                        for buf in content:
                             output.write(buf)
                     output.close()
                     buffer.seek(0)
-                    DATA = buffer.getvalue()
+                    content = buffer.getvalue()
                     self.send_header('Content-Encoding', 'gzip')
 
-                self.send_header('Content-Length', len(DATA))
+                self.send_header('Content-Length', str(len(content)))
                 self.send_header('Content-Type', ctype)
             except Exception as ex:
                 log.exception(ex)
         else:
-            self.send_header('Content-Length', 0)
+            self.send_header('Content-Length', str(0))
 
         self.end_headers()
-        if DATA:
-            if isinstance(DATA, str):
-                DATA = DATA.encode('utf-8')
-            if isinstance(DATA, six.text_type) or isinstance(DATA, bytes):
+        if content:
+            if isinstance(content, str):
+                content = content.encode('utf-8')
+            if isinstance(content, six.text_type) or isinstance(content, bytes):
                 log.debug("Don't use iterator")
-                self.wfile.write(DATA)
+                self.wfile.write(content)
             else:
                 if self._config.DAV.getboolean('http_response_use_iterator'):
                     # Use iterator to reduce using memory
                     log.debug("Use iterator")
-                    for buf in DATA:
+                    for buf in content:
                         self.wfile.write(buf)
                         self.wfile.flush()
                 else:
                     # Don't use iterator, it's a compatibility option
                     log.debug("Don't use iterator")
-                    res = DATA.read()
-                    if isinstance(res,bytes):
+                    res = content.read()
+                    if isinstance(res, bytes):
                         self.wfile.write(res)
                     else:
                         self.wfile.write(res.encode('utf8'))
         return None
 
-    def send_body_chunks_if_http11(self, DATA, code, msg=None, desc=None,
-                                   ctype='text/xml; encoding="utf-8"',
-                                   headers={}):
-        if (self.request_version == 'HTTP/1.0' or
-            not self._config.DAV.getboolean('chunked_http_response')):
-            self.send_body(DATA, code, msg, desc, ctype, headers)
+    def send_body_chunks_if_http11(self, content, status_code, msg=None, desc=None, ctype='text/xml; encoding="utf-8"', headers={}):
+        if self.request_version == 'HTTP/1.0' or not self._config.DAV.getboolean('chunked_http_response'):
+            self.send_body(content, status_code, msg, desc, ctype, headers)
         else:
-            self.send_body_chunks(DATA, code, msg, desc, ctype, headers)
+            self.send_body_chunks(content, status_code, msg, desc, ctype, headers)
 
-    def send_body_chunks(self, DATA, code, msg=None, desc=None,
-                         ctype='text/xml"', headers={}):
+    def send_body_chunks(self, content, status_code, msg=None, desc=None, ctype='text/xml"', headers={}):
         """ send a body in chunks """
 
         self.responses[207] = (msg, desc)
-        self.send_response(code, message=msg)
+        self.send_response(status_code, message=msg)
         self.send_header("Content-type", ctype)
         self.send_header("Transfer-Encoding", "chunked")
         self.send_header('Date', rfc1123_date())
@@ -143,15 +137,15 @@ class DAVRequestHandler(AuthServer.AuthRequestHandler, LockManager):
             self.send_header(a, v)
 
         GZDATA = None
-        if DATA:
+        if content:
             if ('gzip' in self.headers.get('Accept-Encoding', '').split(',')
-                and len(DATA) > self.encode_threshold):
+                and len(content) > self.encode_threshold):
                 buffer = io.BytesIO()
                 output = gzip.GzipFile(mode='wb', fileobj=buffer)
-                if isinstance(DATA, bytes):
-                    output.write(DATA)
+                if isinstance(content, bytes):
+                    output.write(content)
                 else:
-                    for buf in DATA:
+                    for buf in content:
                         buf = buf.encode() if isinstance(buf, six.text_type) else buf
                         output.write(buf)
                 output.close()
@@ -159,7 +153,7 @@ class DAVRequestHandler(AuthServer.AuthRequestHandler, LockManager):
                 GZDATA = buffer.getvalue()
                 self.send_header('Content-Encoding', 'gzip')
 
-            self.send_header('Content-Length', len(DATA))
+            self.send_header('Content-Length', len(content))
             self.send_header('Content-Type', ctype)
 
         else:
@@ -170,18 +164,18 @@ class DAVRequestHandler(AuthServer.AuthRequestHandler, LockManager):
         if GZDATA:
             self.wfile.write(GZDATA)
 
-        elif DATA:
-            DATA = DATA.encode() if isinstance(DATA, six.text_type) else DATA
-            if isinstance(DATA, six.binary_type):
-                self.wfile.write(b"%s\r\n" % hex(len(DATA))[2:].encode())
-                self.wfile.write(DATA)
+        elif content:
+            content = content.encode() if isinstance(content, six.text_type) else content
+            if isinstance(content, six.binary_type):
+                self.wfile.write(b"%s\r\n" % hex(len(content))[2:].encode())
+                self.wfile.write(content)
                 self.wfile.write(b"\r\n")
                 self.wfile.write(b"0\r\n")
                 self.wfile.write(b"\r\n")
             else:
                 if self._config.DAV.getboolean('http_response_use_iterator'):
                     # Use iterator to reduce using memory
-                    for buf in DATA:
+                    for buf in content:
                         buf = buf.encode() if isinstance(buf, six.text_type) else buf
                         self.wfile.write((hex(len(buf))[2:] + "\r\n").encode())
                         self.wfile.write(buf)
@@ -191,8 +185,8 @@ class DAVRequestHandler(AuthServer.AuthRequestHandler, LockManager):
                     self.wfile.write(b"\r\n")
                 else:
                     # Don't use iterator, it's a compatibility option
-                    self.wfile.write((hex(len(DATA))[2:] + "\r\n").encode())
-                    self.wfile.write(DATA.read())
+                    self.wfile.write((hex(len(content))[2:] + "\r\n").encode())
+                    self.wfile.write(content.read())
                     self.wfile.write(b"\r\n")
                     self.wfile.write(b"0\r\n")
                     self.wfile.write(b"\r\n")
@@ -203,13 +197,13 @@ class DAVRequestHandler(AuthServer.AuthRequestHandler, LockManager):
         else:
             self.send_header('DAV', DAV_VERSION_1['version'])
 
-    ### HTTP METHODS called by the server
+    # HTTP METHODS called by the server
 
     def do_OPTIONS(self):
         """return the list of capabilities """
 
         self.send_response(200)
-        self.send_header("Content-Length", 0)
+        self.send_header("Content-Length", str(0))
 
         if self._config.DAV.getboolean('lockemulation'):
             self.send_header('Allow', DAV_VERSION_2['options'])
@@ -231,8 +225,7 @@ class DAVRequestHandler(AuthServer.AuthRequestHandler, LockManager):
 
         # get the last modified date (RFC 1123!)
         try:
-            headers['Last-Modified'] = dc.get_prop(
-                uri, "DAV:", "getlastmodified")
+            headers['Last-Modified'] = dc.get_prop(uri, "DAV:", "getlastmodified")
         except DAV_NotFound:
             pass
 
@@ -253,17 +246,17 @@ class DAVRequestHandler(AuthServer.AuthRequestHandler, LockManager):
         except DAV_NotFound:
             content_type = "application/octet-stream"
 
-        range = None
+        data_range = None
         status_code = 200
         if 'Range' in self.headers:
             p = self.headers['Range'].find("bytes=")
             if p != -1:
-                range = self.headers['Range'][p + 6:].split("-")
+                data_range = self.headers['Range'][p + 6:].split("-")
                 status_code = 206
 
         # get the data
         try:
-            data = dc.get_data(uri, range)
+            data = dc.get_data(uri, data_range)
         except DAV_Error as error:
             (ec, dd) = error.args
             self.send_status(ec)
@@ -274,13 +267,11 @@ class DAVRequestHandler(AuthServer.AuthRequestHandler, LockManager):
             data = None
 
         if isinstance(data, str) or isinstance(data, six.text_type):
-            self.send_body(data, status_code, None, None, content_type,
-                           headers)
+            self.send_body(data, status_code, None, None, content_type, headers)
         else:
             headers['Keep-Alive'] = 'timeout=15, max=86'
             headers['Connection'] = 'Keep-Alive'
-            self.send_body_chunks_if_http11(data, status_code, None, None,
-                                            content_type, headers)
+            self.send_body_chunks_if_http11(data, status_code, None, None, content_type, headers)
 
         return status_code
 

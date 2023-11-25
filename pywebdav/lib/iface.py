@@ -80,9 +80,9 @@ class dav_interface:
         except AttributeError:
             raise DAV_NotFound
 
-    ###
-    ### DATA methods (for GET and PUT)
-    ###
+    #
+    # DATA methods (for GET and PUT)
+    #
 
     def get_data(self, uri, range=None):
         """ return the content of an object

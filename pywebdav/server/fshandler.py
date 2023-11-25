@@ -111,18 +111,18 @@ class FilesystemHandler(dav_interface):
     def get_childs(self, uri, filter=None):
         """ return the child objects as self.baseuris for the given URI """
 
-        fileloc=self.uri2local(uri)
-        filelist=[]
+        fileloc = self.uri2local(uri)
+        filelist = []
 
         if os.path.exists(fileloc):
             if os.path.isdir(fileloc):
                 try:
-                    files=os.listdir(fileloc)
+                    files = os.listdir(fileloc)
                 except:
                     raise DAV_NotFound
 
                 for file in files:
-                    newloc=os.path.join(fileloc,file)
+                    newloc = os.path.join(fileloc, file)
                     filelist.append(self.local2uri(newloc))
 
                 log.info('get_childs: Childs %s' % filelist)
@@ -133,16 +133,17 @@ class FilesystemHandler(dav_interface):
         """Return a directory listing similar to http.server's"""
 
         # Hide this strings for security reasons
+        # <head>
+        #     <title>Directory listing for {path}</title>
+        # </head>
         # <h1>Directory listing for {path}</h1>
         # <hr>
         template = textwrap.dedent("""
             <html>
-                <head><title>Directory listing for {path}</title></head>
                 <body>
                     <ul>
                     {items}
                     </ul>
-                    <hr>
                 </body>
             </html>
             """)
@@ -243,16 +244,15 @@ class FilesystemHandler(dav_interface):
         path=self.uri2local(uri)
         if os.path.exists(path):
             if os.path.isfile(path):
-                if MAGIC_AVAILABLE is False \
-                        or self.mimecheck is False:
+                if MAGIC_AVAILABLE is False or self.mimecheck is False:
                     return 'application/octet-stream'
                 else:
                     ret, encoding = mimetypes.guess_type(path)
 
                     # for non mimetype related result we
                     # simply return an appropriate type
-                    if ret.find('/')==-1:
-                        if ret.find('text')>=0:
+                    if ret.find('/') == -1:
+                        if ret.find('text') >= 0:
                             return 'text/plain'
                         else:
                             return 'application/octet-stream'
@@ -282,7 +282,7 @@ class FilesystemHandler(dav_interface):
 
         return None
 
-    def mkcol(self,uri):
+    def mkcol(self, uri):
         """ create a new collection """
         path=self.uri2local(uri)
 
@@ -307,12 +307,12 @@ class FilesystemHandler(dav_interface):
             log.info('mkcol: Creation of %s denied' % path)
             raise DAV_Forbidden
 
-    ### ?? should we do the handler stuff for DELETE, too ?
-    ### (see below)
+    # ?? should we do the handler stuff for DELETE, too ?
+    # (see below)
 
-    def rmcol(self,uri):
+    def rmcol(self, uri):
         """ delete a collection """
-        path=self.uri2local(uri)
+        path = self.uri2local(uri)
         if not os.path.exists(path):
             raise DAV_NotFound
 
@@ -323,7 +323,7 @@ class FilesystemHandler(dav_interface):
 
         return 204
 
-    def rm(self,uri):
+    def rm(self, uri):
         """ delete a normal resource """
         path=self.uri2local(uri)
         if not os.path.exists(path):
@@ -337,11 +337,11 @@ class FilesystemHandler(dav_interface):
 
         return 204
 
-    ###
-    ### DELETE handlers (examples)
-    ### (we use the predefined methods in davcmd instead of doing
-    ### a rm directly
-    ###
+    #
+    # DELETE handlers (examples)
+    # (we use the predefined methods in davcmd instead of doing
+    # a rm directly
+    #
 
     def delone(self, uri):
         """ delete a single resource
@@ -353,7 +353,7 @@ class FilesystemHandler(dav_interface):
         """
         return delone(self, uri)
 
-    def deltree(self,uri):
+    def deltree(self, uri):
         """ delete a collection
 
         You have to return a result dict of the form
@@ -361,7 +361,7 @@ class FilesystemHandler(dav_interface):
         or None if everything's ok
         """
 
-        return deltree(self,uri)
+        return deltree(self, uri)
 
     #
     # MOVE handlers (examples)
@@ -379,9 +379,9 @@ class FilesystemHandler(dav_interface):
 
         return movetree(self,src,dst,overwrite)
 
-    ###
-    ### COPY handlers
-    ###
+    #
+    # COPY handlers
+    #
 
     def copyone(self,src,dst,overwrite):
         """ copy one resource with Depth=0
@@ -389,21 +389,20 @@ class FilesystemHandler(dav_interface):
 
         return copyone(self,src,dst,overwrite)
 
-    def copytree(self,src,dst,overwrite):
+    def copytree(self, src, dst, overwrite):
         """ copy a collection with Depth=infinity
         """
+        return copytree(self, src, dst, overwrite)
 
-        return copytree(self,src,dst,overwrite)
+    #
+    # copy methods.
+    # This methods actually copy something. low-level
+    # They are called by the davcmd utility functions
+    # copytree and copyone (not the above!)
+    # Look in davcmd.py for further details.
+    #
 
-    ###
-    ### copy methods.
-    ### This methods actually copy something. low-level
-    ### They are called by the davcmd utility functions
-    ### copytree and copyone (not the above!)
-    ### Look in davcmd.py for further details.
-    ###
-
-    def copy(self,src,dst):
+    def copy(self, src, dst):
         """ copy a resource from src to dst """
 
         srcfile=self.uri2local(src)
@@ -432,9 +431,9 @@ class FilesystemHandler(dav_interface):
             return 1
         return None
 
-    def is_collection(self,uri):
+    def is_collection(self, uri):
         """ test if the given uri is a collection """
-        path=self.uri2local(uri)
+        path = self.uri2local(uri)
         if os.path.isdir(path):
             return 1
         else:

@@ -166,6 +166,7 @@ Parameters:
 Please send bug reports and feature requests to %s
 """ % (__version__, __author__)
 
+
 def setupDummyConfig(**kw):
 
     class DummyConfigDAV:

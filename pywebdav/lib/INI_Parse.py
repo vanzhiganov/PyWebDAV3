@@ -4,11 +4,11 @@ from six.moves.configparser import ConfigParser
 
 
 class Configuration:
-    def __init__(self, fileName):
+    def __init__(self, file_name):
         cp = ConfigParser()
-        cp.read(fileName)
+        cp.read(file_name)
         self.__parser = cp
-        self.fileName = fileName
+        self.fileName = file_name
 
     def __getattr__(self, name):
         if name in self.__parser.sections():
@@ -18,13 +18,14 @@ class Configuration:
 
     def __str__(self):
         p = self.__parser
-        result = []
+        result = list()
         result.append('<Configuration from %s>' % self.fileName)
         for s in p.sections():
             result.append('[%s]' % s)
             for o in p.options(s):
                 result.append('%s=%s' % (o, p.get(s, o)))
         return '\n'.join(result)
+
 
 class Section:
     def __init__(self, name, parser):
