@@ -63,7 +63,7 @@ setup(
             'PyMySQL'
         ]
     },
-    setup_requires=[
-        'git-versioner'
-    ],
+    # setup_requires=[
+    #     'git-versioner'
+    # ],
 )

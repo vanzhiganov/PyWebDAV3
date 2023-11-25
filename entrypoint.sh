@@ -2,11 +2,13 @@
 
 CONFIG="${CONFIG:-config.ini}"
 
+M=""
 if [ -z "${MYSQL_ENABLED}" ]; then
   logger -s "Env MYSQL_ENABLED not defined."
 else
   crudini --set "${CONFIG}" MySQL enabled "${MYSQL_ENABLED}"
   crudini --set "${CONFIG}" DAV mysql_auth "${MYSQL_ENABLED}"
+  M="-m"
 fi
 
 
@@ -87,3 +89,5 @@ crudini --set "${CONFIG}" DAV baseurl "${DAV_BASEURL:-localhost}"
 crudini --set "${CONFIG}" DAV chunked_http_response "${DAV_FEATURE_HTTP_CHUNKED_RESPONSE:-0}"
 crudini --set "${CONFIG}" DAV http_request_use_iterator "${DAV_FEATURE_HTTP_REQUEST_USE_ITERATOR:-0}"
 crudini --set "${CONFIG}" DAV http_response_use_iterator "${DAV_FEATURE_HTTP_RESPONSE_USE_ITERATOR:-0}"
+
+davserver -c ${CONFIG} ${M}

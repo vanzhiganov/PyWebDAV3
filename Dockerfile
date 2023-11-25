@@ -1,16 +1,14 @@
-FROM rockylinux:9 as BUILD
-COPY . /app
-WORKDIR /app
-RUN make dist
-
 FROM rockylinux:9
-RUN dnf update -y && \
-    dnf install -y python3-six python3-cryptography python3-PyMySQL crudini && \
-    dnf clean all && \
-    mkdir /tmp
-COPY --from=BUILD /app/dist/PyWebDAV3-*.tar.gz /tmp
-RUN python -m pip install --no-cache-dir /tmp/PyWebDAV3-*.tar.gz && \
-    rm -f /tmp/PyWebDAV3-*.tar.gz
+RUN dnf update -y && dnf install -y epel-release && \
+    dnf install -y python3-pip python3-six python3-cryptography python3-PyMySQL crudini && \
+    dnf clean all
+
+COPY . /app
+COPY entrypoint.sh /usr/bin/entrypoint.sh
+
+WORKDIR /app
+
+RUN pip3 install .
 
 ENV CONFIG /etc/webdav/config.ini
 
@@ -41,5 +39,4 @@ ENV DAV_FEATURE_HTTP_RESPONSE_USE_ITERATOR 0
 
 EXPOSE 8080
 
-ENTRYPOINT ["davserver"]
-CMD ["-D", "${DAV_STORAGE}"]
+ENTRYPOINT ["/usr/bin/entrypoint.sh"]
