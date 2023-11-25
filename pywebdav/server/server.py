@@ -9,7 +9,9 @@ This is an example implementation of a DAVserver using the DAV package.
 
 from __future__ import absolute_import
 from __future__ import print_function
-import getopt, sys, os
+import getopt
+import sys
+import os
 import logging
 
 logging.basicConfig(level=logging.WARNING)
@@ -33,24 +35,28 @@ from pywebdav.server.daemonize import startstop
 from pywebdav.lib.INI_Parse import Configuration
 from pywebdav import __version__, __author__
 
-LEVELS = {'debug': logging.DEBUG,
-          'info': logging.INFO,
-          'warning': logging.WARNING,
-          'error': logging.ERROR,
-          'critical': logging.CRITICAL}
+LEVELS = {
+    'debug': logging.DEBUG,
+    'info': logging.INFO,
+    'warning': logging.WARNING,
+    'error': logging.ERROR,
+    'critical': logging.CRITICAL
+}
+
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     """Handle requests in a separate thread."""
 
+
 def runserver(
-         port = 8008, host='localhost',
+         port=8008, host='localhost',
          directory='/tmp',
-         verbose = False,
-         noauth = False,
-         user = '',
-         password = '',
-         handler = DAVAuthHandler,
-         server = ThreadedHTTPServer):
+         verbose=False,
+         noauth=False,
+         user='',
+         password='',
+         handler=DAVAuthHandler,
+         server=ThreadedHTTPServer):
 
     directory = directory.strip()
     directory = directory.rstrip('/')
@@ -96,13 +102,14 @@ def runserver(
     handler.IFACE_CLASS.baseurl = handler._config.DAV.baseurl
 
     # initialize server on specified port
-    runner = server( (host, port), handler )
+    runner = server((host, port), handler)
     print(('Listening on %s (%i)' % (host, port)))
 
     try:
         runner.serve_forever()
     except KeyboardInterrupt:
         log.info('Killed by user')
+
 
 usage = """PyWebDAV server (version %s)
 Standalone WebDAV server
@@ -173,6 +180,7 @@ def setupDummyConfig(**kw):
 
     return DummyConfig()
 
+
 def run():
     verbose = False
     directory = '/tmp'
@@ -195,17 +203,20 @@ def run():
 
     # parse commandline
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'P:D:H:d:u:p:nvhmJi:c:Ml:TB:',
-                ['host=', 'port=', 'directory=', 'user=', 'password=',
-                 'daemon=', 'noauth', 'help', 'verbose', 'mysql', 
-                 'icounter=', 'config=', 'nolock', 'nomime', 'loglevel', 'noiter',
-                 'baseurl='])
+        opts, args = getopt.getopt(
+            sys.argv[1:],
+            'P:D:H:d:u:p:nvhmJi:c:Ml:TB:',
+            [
+                'host=', 'port=', 'directory=', 'user=', 'password=', 'daemon=',
+                'noauth', 'help', 'verbose', 'mysql', 'icounter=', 'config=',
+                'nolock', 'nomime', 'loglevel', 'noiter', 'baseurl='
+            ])
     except getopt.GetoptError as e:
         print(usage)
         print('>>>> ERROR: %s' % str(e))
         sys.exit(2)
 
-    for o,a in opts:
+    for o, a in opts:
         if o in ['-i', '--icounter']:
             counter = int(str(a).strip())
 
@@ -292,26 +303,25 @@ def run():
 
         if 'http_response_use_iterator' not in dv:
             dv.set('http_response_use_iterator', http_response_use_iterator)
-
     else:
-
-        _dc = { 'verbose' : verbose,
-                'directory' : directory,
-                'port' : port,
-                'host' : host,
-                'noauth' : noauth,
-                'user' : user,
-                'password' : password,
-                'daemonize' : daemonize,
-                'daemonaction' : daemonaction,
-                'counter' : counter,
-                'lockemulation' : lockemulation,
-                'mimecheck' : mimecheck,
-                'chunked_http_response': chunked_http_response,
-                'http_request_use_iterator': http_request_use_iterator,
-                'http_response_use_iterator': http_response_use_iterator,
-                'baseurl' : baseurl
-                }
+        _dc = {
+            'verbose': verbose,
+            'directory': directory,
+            'port': port,
+            'host': host,
+            'noauth': noauth,
+            'user': user,
+            'password': password,
+            'daemonize': daemonize,
+            'daemonaction': daemonaction,
+            'counter': counter,
+            'lockemulation': lockemulation,
+            'mimecheck': mimecheck,
+            'chunked_http_response': chunked_http_response,
+            'http_request_use_iterator': http_request_use_iterator,
+            'http_response_use_iterator': http_response_use_iterator,
+            'baseurl': baseurl
+        }
 
         conf = setupDummyConfig(**_dc)
 
@@ -346,34 +356,35 @@ def run():
     if type(port) == type(''):
         port = int(port.strip())
 
-    log.info('chunked_http_response feature %s' % (conf.DAV.getboolean('chunked_http_response') and 'ON' or 'OFF' ))
-    log.info('http_request_use_iterator feature %s' % (conf.DAV.getboolean('http_request_use_iterator') and 'ON' or 'OFF' ))
-    log.info('http_response_use_iterator feature %s' % (conf.DAV.getboolean('http_response_use_iterator') and 'ON' or 'OFF' ))
+    log.info('chunked_http_response feature %s' % (conf.DAV.getboolean('chunked_http_response') and 'ON' or 'OFF'))
+    log.info('http_request_use_iterator feature %s' % (conf.DAV.getboolean('http_request_use_iterator') and 'ON' or 'OFF'))
+    log.info('http_response_use_iterator feature %s' % (conf.DAV.getboolean('http_response_use_iterator') and 'ON' or 'OFF'))
  
     if daemonize:
-
         # check if pid file exists
         if os.path.exists('/tmp/pydav%s.pid' % counter) and daemonaction not in ['status', 'stop']:
             log.error(
                   'Found another instance! Either use -i to specifiy another instance number or remove /tmp/pydav%s.pid!' % counter)
             sys.exit(3)
 
-        startstop(stdout='/tmp/pydav%s.log' % counter, 
-                    stderr='/tmp/pydav%s.err' % counter, 
-                    pidfile='/tmp/pydav%s.pid' % counter, 
-                    startmsg='>> Started PyWebDAV (PID: %s)',
-                    action=daemonaction)
+        startstop(
+            stdout='/tmp/pydav%s.log' % counter,
+            stderr='/tmp/pydav%s.err' % counter,
+            pidfile='/tmp/pydav%s.pid' % counter,
+            startmsg='>> Started PyWebDAV (PID: %s)',
+            action=daemonaction)
 
     # start now
     handler = DAVAuthHandler
+
     if mysql == True:
         handler = MySQLAuthHandler
 
     # injecting options
     handler._config = conf
 
-    runserver(port, host, directory, verbose, noauth, user, password, 
-              handler=handler)
+    runserver(port, host, directory, verbose, noauth, user, password, handler=handler)
+
 
 if __name__ == '__main__':
     run()

@@ -27,11 +27,12 @@ import sys
 import logging
 
 from pywebdav.lib.WebDAVServer import DAVRequestHandler
-from pywebdav.lib.dbconn import Mconn
+from pywebdav.lib.dbconn import MySQLConnector
 
 from .fshandler import FilesystemHandler
 
 log = logging.getLogger()
+
 
 class DAVAuthHandler(DAVRequestHandler):
     """
@@ -48,7 +49,7 @@ class DAVAuthHandler(DAVRequestHandler):
         if self.verbose:
             log.info(message)
 
-    def get_userinfo(self,user,pw,command):
+    def get_userinfo(self, user, pw, command):
         """ authenticate user """
 
         if user == self._config.DAV.user and pw == self._config.DAV.password:
@@ -57,4 +58,3 @@ class DAVAuthHandler(DAVRequestHandler):
 
         log.info('Authentication failed for user %s' % user)
         return 0
-

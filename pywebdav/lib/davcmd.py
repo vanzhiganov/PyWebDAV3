@@ -9,14 +9,15 @@ resources and collections
 """
 
 from __future__ import absolute_import
+import os
 from six.moves import urllib
+from six.moves import range
 
 from .utils import create_treelist, is_prefix
 from .errors import *
-from six.moves import range
-import os
 
-def deltree(dc,uri,exclude={}):
+
+def deltree(dc, uri, exclude={}):
     """ delete a tree of resources
 
     dc  -- dataclass to use
@@ -32,8 +33,8 @@ def deltree(dc,uri,exclude={}):
 
     """
 
-    tlist=create_treelist(dc,uri)
-    result={}
+    tlist = create_treelist(dc, uri)
+    result = {}
 
     for i in range(len(tlist),0,-1):
         problem_uris=list(result.keys())
@@ -69,7 +70,8 @@ def deltree(dc,uri,exclude={}):
 
     return result
 
-def delone(dc,uri):
+
+def delone(dc, uri):
     """ delete a single object """
     if dc.is_collection(uri):
         return dc.rmcol(uri)   # should be empty

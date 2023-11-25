@@ -42,7 +42,7 @@ Information
 
 This document describes the architecture of the python davserver.
 
-The main programm is stored in pywebdav/lib/WebDAVServer.py. It exports a class
+The main program is stored in pywebdav/lib/WebDAVServer.py. It exports a class
 WebDAVServer which is subclassed from AuthServer.
 
 The AuthServer class implements Basic Authentication in order to make

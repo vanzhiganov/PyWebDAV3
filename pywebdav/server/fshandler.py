@@ -132,12 +132,13 @@ class FilesystemHandler(dav_interface):
     def _get_listing(self, path):
         """Return a directory listing similar to http.server's"""
 
+        # Hide this strings for security reasons
+        # <h1>Directory listing for {path}</h1>
+        # <hr>
         template = textwrap.dedent("""
             <html>
                 <head><title>Directory listing for {path}</title></head>
                 <body>
-                    <h1>Directory listing for {path}</h1>
-                    <hr>
                     <ul>
                     {items}
                     </ul>
@@ -150,7 +151,7 @@ class FilesystemHandler(dav_interface):
 
         return template.format(items=htmlitems, path=path)
 
-    def get_data(self, uri, range = None):
+    def get_data(self, uri, range=None):
         """ return the content of an object """
 
         path = self.uri2local(uri)
@@ -158,7 +159,7 @@ class FilesystemHandler(dav_interface):
             if os.path.isfile(path):
                 file_size = os.path.getsize(path)
                 if range is None:
-                    fp=open(path,"rb")
+                    fp = open(path, "rb")
                     log.info('Serving content of %s' % uri)
                     return Resource(fp, file_size)
                 else:
@@ -178,7 +179,7 @@ class FilesystemHandler(dav_interface):
                     if range[1] > file_size:
                         range[1] = file_size
 
-                    fp=open(path,"rb")
+                    fp = open(path, "rb")
                     fp.seek(range[0])
                     log.info('Serving range %s -> %s content of %s' % (range[0], range[1], uri))
                     return Resource(fp, range[1] - range[0])
@@ -187,14 +188,14 @@ class FilesystemHandler(dav_interface):
                 return Resource(StringIO(msg), len(msg))
             else:
                 # also raise an error for collections
-                # don't know what should happen then..
+                # don't know what should happen then...
                 log.info('get_data: %s not found' % path)
 
         raise DAV_NotFound
 
-    def _get_dav_resourcetype(self,uri):
+    def _get_dav_resourcetype(self, uri):
         """ return type of object """
-        path=self.uri2local(uri)
+        path = self.uri2local(uri)
         if os.path.isfile(path):
             return OBJECT
 
@@ -342,7 +343,7 @@ class FilesystemHandler(dav_interface):
     ### a rm directly
     ###
 
-    def delone(self,uri):
+    def delone(self, uri):
         """ delete a single resource
 
         You have to return a result dict of the form
@@ -350,7 +351,7 @@ class FilesystemHandler(dav_interface):
         or None if everything's ok
 
         """
-        return delone(self,uri)
+        return delone(self, uri)
 
     def deltree(self,uri):
         """ delete a collection
@@ -362,10 +363,9 @@ class FilesystemHandler(dav_interface):
 
         return deltree(self,uri)
 
-
-    ###
-    ### MOVE handlers (examples)
-    ###
+    #
+    # MOVE handlers (examples)
+    #
 
     def moveone(self,src,dst,overwrite):
         """ move one resource with Depth=0

@@ -1,61 +1,60 @@
-#Copyright (c) 1999 Christian Scholz (ruebe@aachen.heimat.de)
+# Copyright (c) 1999 Christian Scholz (ruebe@aachen.heimat.de)
 #
-#This library is free software; you can redistribute it and/or
-#modify it under the terms of the GNU Library General Public
-#License as published by the Free Software Foundation; either
-#version 2 of the License, or (at your option) any later version.
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Library General Public
+# License as published by the Free Software Foundation; either
+# version 2 of the License, or (at your option) any later version.
 #
-#This library is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#Library General Public License for more details.
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Library General Public License for more details.
 #
-#You should have received a copy of the GNU Library General Public
-#License along with this library; if not, write to the Free
-#Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-#MA 02111-1307, USA
+# You should have received a copy of the GNU Library General Public
+# License along with this library; if not, write to the Free
+# Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+# MA 02111-1307, USA
 
 from __future__ import absolute_import
 from __future__ import print_function
 from .fileauth import DAVAuthHandler
 import sys
-from pywebdav.lib.dbconn import Mconn
+from pywebdav.lib.dbconn import MySQLConnector
 
 
 class MySQLAuthHandler(DAVAuthHandler):
-    """
-    Provides authentication based on a mysql table
+    """Provides authentication based on a mysql table
     """
 
-    def get_userinfo(self,user,pw,command):
+    def get_userinfo(self, user, pw, command):
         """ authenticate user """
 
         # Commands that need write access
         nowrite = [
-            'OPTIONS','PROPFIND','GET'
+            'OPTIONS', 'PROPFIND', 'GET'
         ]
 
-        Mysql = self._config.MySQL
-        DB = Mconn(Mysql.user, Mysql.passwd, Mysql.host, Mysql.port, Mysql.dbtable)
+        mysql = self._config.MySQL
+        db = MySQLConnector(mysql.user, mysql.passwd, mysql.host, mysql.port, mysql.dbtable)
         if self.verbose:
             print(user, command, file=sys.stderr)
 
-        qry = "SELECT * FROM %s.Users WHERE User='%s' AND Pass='%s' LIMIT 1" % (Mysql.dbtable, user, pw)
+        qry = "SELECT * FROM %s.Users WHERE User='%s' AND Pass='%s' LIMIT 1" % (mysql.dbtable, user, pw)
 
-        Auth = None
+        auth = None
         try:
-            Auth = DB.execute(qry)
+            auth = db.execute(qry)
         except Exception as ex:
             self._log('Authentication failed for user %s: %s' % (user, ex))
             return 0
 
-        if len(Auth) == 1:
-            can_write=Auth[0][3]
+        if len(auth) == 1:
+            can_write = auth[0][3]
             if not can_write and not command in nowrite:
-                self._log('Authentication failed for user %s using command %s' %(user,command))
+                self._log('Authentication failed for user %s using command %s' % (user, command))
                 return 0
             else:
-                self._log('Successfully authenticated user %s writable=%s' % (user,can_write))
+                self._log('Successfully authenticated user %s writable=%s' % (user, can_write))
                 return 1
         else:
             self._log('Authentication failed for user %s' % user)

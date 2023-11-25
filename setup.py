@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from __future__ import absolute_import
+# from __future__ import absolute_import
 from setuptools import setup, find_packages
 from io import open
 import os
@@ -9,7 +9,8 @@ import pywebdav
 
 README = open(os.path.join(os.path.dirname(__file__), 'README.md'), 'r', encoding='utf-8').read()
 
-setup(name='PyWebDAV3',
+setup(
+    name='PyWebDAV3',
     description=pywebdav.__doc__,
     author=pywebdav.__author__,
     author_email=pywebdav.__email__,
@@ -17,7 +18,10 @@ setup(name='PyWebDAV3',
     maintainer_email=pywebdav.__email__,
     use_git_versioner="gitlab:desc:snapshot",
     url='https://github.com/andrewleech/PyWebDAV3',
-    platforms=['Unix', 'Windows'],
+    platforms=[
+        'Unix',
+        'Windows'
+    ],
     license=pywebdav.__license__,
     version=pywebdav.__version__,
     long_description=README,
@@ -50,7 +54,7 @@ setup(name='PyWebDAV3',
             'davserver = pywebdav.server.server:run'
         ]
     },
-    install_requires = [
+    install_requires=[
         'six',
     ],
     extras_require={
