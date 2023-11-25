@@ -56,6 +56,7 @@ class Section:
     def set(self, name, value):
         self.__parser.set(self.name, name, str(value))
 
+
 # Test
 if __name__ == '__main__':
     c = Configuration('Importador.ini')
